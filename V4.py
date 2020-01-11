@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from Tkinter import *
+from tkinter import *
 
 fenetre_root = Tk()
 fenetre_root.title('Space Invaders')
@@ -12,13 +12,31 @@ canvas.pack(anchor='nw')
 boutonExit = Button(fenetre_root, text = 'EXIT', bg = 'white', relief="solid", command = fenetre_root.destroy, borderwidth=0)
 canvas.create_window(0,0,window = boutonExit, anchor='nw')
 canvas.create_line(0, 27, 600, 27, fill="grey")
-def moveleft(event):
-    if canvas.coords(player)[0] > 4:
-        canvas.move(player, -5,0)
 
+global dire
+dire=0
+def moveleft(event):
+    global dire
+    dire=-1
+    print(dire)
 def moveright(event):
-    if canvas.coords(player)[0] < 550:
-        canvas.move(player, 5,0)
+    global dire
+    dire=1
+    print(dire)
+def stopmove(event):
+    global dire
+    if (event.keysym == "Left" and dire == -1) or (event.keysym == "Right" and dire == 1):
+        dire = 0
+        print(dire)
+def bouge():
+    global dire,player
+    if (canvas.coords(player)[0] <= 4 and dire==-1) or (canvas.coords(player)[0] >= 550 and dire==1) :
+        dire=0
+        print(dire)
+    else:
+        canvas.move(player, dire*5,0)
+    canvas.after(16,bouge)
+
 
 class Ennemi:
     def __init__(self, image, directionLeft = True, kind=1, positionx=52, positiony=28):
@@ -78,6 +96,9 @@ def deplacements():
 
         
 canvas.after(500,deplacements)
+
+canvas.after(16,bouge)
 fenetre_root.bind('<Left>', moveleft)
 fenetre_root.bind('<Right>', moveright)
+fenetre_root.bind('<KeyRelease>', stopmove)
 fenetre_root.mainloop()
