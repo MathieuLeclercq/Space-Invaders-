@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from Tkinter import *
+from tkinter import *
 
 fenetre_root = Tk()
 fenetre_root.title('Space Invaders')
