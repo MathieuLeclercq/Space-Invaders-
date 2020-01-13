@@ -126,7 +126,7 @@ class Jeu:
         self.fenetre = fenetre
         self.canvas = tk.Canvas(fenetre, bg = 'black', bd= 0, highlightthickness=0, height = 600, width = 600)
         self.player = Player(self.canvas, self)
-        self.horde = Horde(self.canvas, self, 1, 6)
+        self.horde = Horde(self.canvas, self, 6, 3)
         self.GameOver = False
         self.Tirsactuels = []
     
