@@ -18,6 +18,8 @@ class Ennemi:
         self.jeu = jeu
 
     def deplacement(self):
+        if self.jeu.GameOver:
+            return
         # Deplacement pour les solitaires persistant qui n'avancent pas (boss ?)
         if self.fcanvas.coords(self.sprite)[0] + self.direction*self.vitesse > 0 and self.fcanvas.coords(self.sprite)[0] + self.direction*self.vitesse + 50 < 600:
             self.fcanvas.move(self.sprite, self.direction*self.vitesse, 0)
@@ -44,6 +46,8 @@ class Horde:
                 self.listeEnnemis.append(Ennemi(fcanvas, jeu, self, i+(12-length)//2, j, self.direction, self.vitesse, self.frequence))
 
     def deplacements(self):
+        if self.jeu.GameOver:
+            return
         deplacementOK=True
         for Ennemi in self.listeEnnemis:
             if self.fcanvas.coords(Ennemi.sprite)[0] + self.direction*self.vitesse < 0 or self.fcanvas.coords(Ennemi.sprite)[0] + self.direction*self.vitesse + 50 > 600:
@@ -66,6 +70,8 @@ class Horde:
         self.fcanvas.after(self.frequence,self.deplacements)
     
     def NouveauTir(self):
+        if self.jeu.GameOver:
+            return
         for Ennemi in self.listeEnnemis:
             probatir = rd.randint(0,100)
             if probatir <= 20:
@@ -80,7 +86,7 @@ class Tir:
         self.fcanvas= fcanvas
         self.jeu = jeu
         self.direction = direction
-        self.sprite = fcanvas.create_image(positionx+25,positiony+50,image=self.image, anchor='nw')
+        self.sprite = fcanvas.create_image(positionx,positiony+direction*30,image=self.image, anchor='nw')
 
 
 
@@ -103,12 +109,16 @@ class Player:
         if (event.keysym == "q" and self.direction == -1) or (event.keysym == "d" and self.direction == 1):
             self.direction = 0
     def deplacementplayer(self):
+        if self.jeu.GameOver:
+            return
         if (self.fcanvas.coords(self.sprite)[0] <= 4 and self.direction==-1) or (self.fcanvas.coords(self.sprite)[0] >= 550 and self.direction==1) :
             self.direction=0
         else:
             self.fcanvas.move(self.sprite, self.direction*5,0)
         self.fcanvas.after(16,self.deplacementplayer)
 
+    def NouveauTirP(self, event):
+        self.jeu.Tirsactuels.append(Tir(self.fcanvas, self.jeu, self.fcanvas.coords(self.sprite)[0], self.fcanvas.coords(self.sprite)[1], -1))
 
 class Jeu:
     def __init__(self, fenetre):
@@ -116,7 +126,7 @@ class Jeu:
         self.fenetre = fenetre
         self.canvas = tk.Canvas(fenetre, bg = 'black', bd= 0, highlightthickness=0, height = 600, width = 600)
         self.player = Player(self.canvas, self)
-        self.horde = Horde(self.canvas, self, 6, 3)
+        self.horde = Horde(self.canvas, self, 1, 6)
         self.GameOver = False
         self.Tirsactuels = []
     
@@ -131,6 +141,7 @@ class Jeu:
         self.fenetre.bind('<d>', self.player.moveright)
         self.fenetre.bind('<D>', self.player.moveright)
         self.fenetre.bind('<KeyRelease>', self.player.stopmove)
+        self.fenetre.bind('<space>', self.player.NouveauTirP)
 
     def endGame(self):
         # A refaire en supprimant totalement le canvas et ses binds pour le recréer avec une fonction
@@ -140,12 +151,17 @@ class Jeu:
         self.canvas.create_window(300, 300, window=widget)
     
     def GestionTirs(self):
+        if self.GameOver:
+            return
         for tir in self.Tirsactuels:
             self.canvas.move(tir.sprite, 0,tir.direction*5)
+            if self.canvas.coords(tir.sprite)[1] > 600 or self.canvas.coords(tir.sprite)[1] < -50:
+                self.canvas.delete(tir.sprite)
+                self.Tirsactuels.remove(tir)
         self.canvas.after(64, self.GestionTirs)
 
 
-
+# Gestion mort player ou monstre + replay + obstacle
     
 if __name__ == '__main__':
     fenetre_root = tk.Tk()
