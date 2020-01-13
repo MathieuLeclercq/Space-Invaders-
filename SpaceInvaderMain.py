@@ -76,6 +76,8 @@ class Player:
         self.fcanvas.after(16,self.deplacementplayer)
 
     
+
+
 if __name__ == '__main__':
     fenetre_root = Tk()
     fenetre_root.title('Space Invaders')
@@ -96,3 +98,4 @@ if __name__ == '__main__':
     fenetre_root.bind('<Right>', player.moveright)
     fenetre_root.bind('<KeyRelease>', player.stopmove)
     fenetre_root.mainloop()
+
