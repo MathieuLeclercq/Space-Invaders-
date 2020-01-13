@@ -19,7 +19,6 @@ class Ennemi:
 
     def deplacement(self):
         # Deplacement pour les solitaires persistant qui n'avancent pas (boss ?)
-        deplacementOK=True
         if self.fcanvas.coords(self.sprite)[0] + self.direction*self.vitesse > 0 and self.fcanvas.coords(self.sprite)[0] + self.direction*self.vitesse + 50 < 600:
             self.fcanvas.move(self.sprite, self.direction*self.vitesse, 0)
         else:
@@ -66,23 +65,22 @@ class Horde:
             self.direction = (self.direction == -1) - (self.direction == 1)
         self.fcanvas.after(self.frequence,self.deplacements)
     
-     
-    
-    def Tir(self):
+    def NouveauTir(self):
         for Ennemi in self.listeEnnemis:
-            Tir = rd.randint(0,100)
-            if Tir <= 20:
-                x = 4
+            probatir = rd.randint(0,100)
+            if probatir <= 20:
+                self.jeu.Tirsactuels.append(Tir(self.fcanvas, self.jeu, self.fcanvas.coords(Ennemi.sprite)[0], self.fcanvas.coords(Ennemi.sprite)[1], 1))
+        self.fcanvas.after(5000, self.NouveauTir)
                 
                 
             
-class Piou:
-    def __init__(self, image, fcanvas, jeu, positionx, positiony, direction):
+class Tir:
+    def __init__(self, fcanvas, jeu, positionx, positiony, direction):
         self.image = tk.PhotoImage(file='laser.png')
         self.fcanvas= fcanvas
         self.jeu = jeu
         self.direction = direction
-        self.sprite = fcanvas.create_image(positionx+25,positiony+50,image=image, anchor='nw')
+        self.sprite = fcanvas.create_image(positionx+25,positiony+50,image=self.image, anchor='nw')
 
 
 
@@ -118,15 +116,20 @@ class Jeu:
         self.fenetre = fenetre
         self.canvas = tk.Canvas(fenetre, bg = 'black', bd= 0, highlightthickness=0, height = 600, width = 600)
         self.player = Player(self.canvas, self)
-        self.horde = Horde(self.canvas, self, 8, 8)
+        self.horde = Horde(self.canvas, self, 6, 3)
         self.GameOver = False
+        self.Tirsactuels = []
     
     def Debut(self):
         self.canvas.pack(anchor='nw')
         self.canvas.after(16, self.horde.deplacements)
         self.canvas.after(16, self.player.deplacementplayer)
+        self.canvas.after(16, self.GestionTirs)
+        self.canvas.after(16, self.horde.NouveauTir)
         self.fenetre.bind('<q>', self.player.moveleft)
+        self.fenetre.bind('<Q>', self.player.moveleft)
         self.fenetre.bind('<d>', self.player.moveright)
+        self.fenetre.bind('<D>', self.player.moveright)
         self.fenetre.bind('<KeyRelease>', self.player.stopmove)
 
     def endGame(self):
@@ -134,7 +137,12 @@ class Jeu:
         self.canvas.delete('all')
         widget = tk.Label(self.canvas, text='Game Over', fg='white', bg='black')
         widget.pack()
-        self.canvas.create_window(300, 300, window=widget)  
+        self.canvas.create_window(300, 300, window=widget)
+    
+    def GestionTirs(self):
+        for tir in self.Tirsactuels:
+            self.canvas.move(tir.sprite, 0,tir.direction*5)
+        self.canvas.after(64, self.GestionTirs)
 
 
 
