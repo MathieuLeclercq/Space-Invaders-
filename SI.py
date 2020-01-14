@@ -127,6 +127,14 @@ class Player:
         self.TimerTir += 1
         self.fcanvas.after(16, self.PasdeTir)
 
+
+class Menu:
+    def __init__(self):
+        self.background = tk.PhotoImage(file = 'backgroundMenu.png')
+        self.logo =  tk.PhotoImage(file = 'logo.png')
+
+
+
 class Jeu:
     def __init__(self):
         # A ameliorer pour configurer depuis la declaration d'un objet jeu
@@ -141,8 +149,20 @@ class Jeu:
         self.horde = Horde(self.canvas, self, 6, 3)
         self.GameOver = False
         self.Tirsactuels = []
+
+        self.menu = Menu()
+        self.boutonPlay = tk.Button(self.fenetre, text = 'PLAY !',height = 4, width = 20,command=self.Debut,activebackground='#FFE213',background='#FFE213')
+        self.boutonExit = tk.Button(self.fenetre, text = 'EXIT',height = 2, width = 10,command=self.fenetre.destroy,activebackground='#FFE213',background='#FFE213')
+
+    def lancerMenu(self):
+        self.canvas.pack(anchor='nw')
+        self.affBackground = self.canvas.create_image(300,300,image=self.menu.background)
+        self.affLogo = self.canvas.create_image(300,133,image=self.menu.logo)        
+        self.affBoutonPLay =self.canvas.create_window(300,350,window = self.boutonPlay)        
+        self.affBoutonExit = self.canvas.create_window(300,450,window = self.boutonExit)
     
     def Debut(self):
+        self.canvas.delete(self.affBoutonPLay,self.affBoutonExit,self.affBackground,self.affLogo)
         self.canvas.pack(anchor='nw')
         self.canvas.after(16, self.horde.deplacements)
         self.canvas.after(16, self.player.deplacementplayer)
@@ -190,5 +210,7 @@ class Jeu:
     
 if __name__ == '__main__':
     jeu = Jeu()
-    jeu.Debut()
+    jeu.lancerMenu()
     jeu.fenetre.mainloop()
+
+
