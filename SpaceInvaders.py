@@ -2,7 +2,7 @@
 import tkinter as tk
 import random as rd
 
-class Ennemi:
+class Ennemi: # gère le type des ennemis, leurs déplacements
     def __init__(self, canvas, jeu, Horde, positionx=6, positiony=1, direction = 1, vitesse = 2, frequence = 16, kind=2):
         self.kind = kind
         self.canvas = canvas
@@ -43,11 +43,11 @@ class Ennemi:
             self.canvas.destroy(self.sprite)
         self.canvas.after(self.frequence,self.deplacementsurprise)
 
-class Horde:
-    def __init__(self,canvas, jeu, length, heigth, vitesse = 1, direction = 1, frequence = 16):
+class Horde:  # gère les ennemis en tant que groupe
+    def __init__(self,canvas, jeu, length, height, vitesse = 1, direction = 1, frequence = 16):
         self.listeEnnemis = []
         self.length = length
-        self.heigth = heigth
+        self.height = height
         self.canvas = canvas
         self.jeu = jeu
         self.vitesse = vitesse
@@ -56,9 +56,9 @@ class Horde:
         
         
         for i in range(length):
-            for j in range(heigth-1):
+            for j in range(height-1):
                 self.listeEnnemis.append(Ennemi(canvas, jeu, self, i+(12-length)//2, j, self.direction, self.vitesse, self.frequence, 2))
-            self.listeEnnemis.append(Ennemi(canvas, jeu, self, i+(12-length)//2, heigth-1, self.direction, self.vitesse, self.frequence, 1))
+            self.listeEnnemis.append(Ennemi(canvas, jeu, self, i+(12-length)//2, height-1, self.direction, self.vitesse, self.frequence, 1))
     def deplacements(self):
         if self.jeu.GameOver or self.jeu.transition:
             return
@@ -94,7 +94,7 @@ class Horde:
                 
                 
             
-class Tir:
+class Tir: # gère les tirs du joueur et des ennemis
     def __init__(self, canvas, jeu, positionx, positiony, direction):
         self.image = [tk.PhotoImage(file='laser.png'), tk.PhotoImage(file='laser2.png')]
         self.canvas= canvas
@@ -105,8 +105,8 @@ class Tir:
 
 
 class Player:
-    def __init__(self, canvas, jeu, positionx=275, positiony=550):
-        # canvas = canvas peut etre problematique
+    def __init__(self, canvas, jeu, positionx=275, positiony=550): # on initie tous les attributs du vaisseau
+        
         self.canvas = canvas
         self.image = tk.PhotoImage(file='player.png').subsample(10,10) #50px*50px
         self.sprite= canvas.create_image(positionx,positiony,image=self.image, anchor='nw')
@@ -132,44 +132,48 @@ class Player:
             self.direction = 0
         if (event.keysym == "space" and self.tir == 1):
             self.tir = False
-    def deplacementplayer(self):
+
+    def deplacementplayer(self):  # déplacement du sprite 
         if self.jeu.GameOver:
             return
+            
         if (self.canvas.coords(self.sprite)[0] <= 4 and self.direction==-1) or (self.canvas.coords(self.sprite)[0] >= 550 and self.direction==1) :
-            self.direction=0
+            self.direction=0 # On fait attention à ne pas dépasser les bordures
         else:
             self.canvas.move(self.sprite, self.direction*5,0)
         self.canvas.after(16,self.deplacementplayer)
         
-        if self.tir == True and self.TimerTir >= 25 and not(self.jeu.transition):
+        if self.tir == True and self.TimerTir >= 25 and not(self.jeu.transition): 
             self.jeu.Tirsactuels.append(Tir(self.canvas, self.jeu, self.canvas.coords(self.sprite)[0], self.canvas.coords(self.sprite)[1], -1))
-            self.TimerTir = 0
+            self.TimerTir = 0 # remise à zéro du timer après un tir du vaisseau
 
     def NouveauTirP(self, event):
         if self.jeu.GameOver:
             return
-        if self.TimerTir >= 25:
+        if self.TimerTir >= 25:   # on ne peut pas tirer si le timer n'est pas terminé
             self.tir = True  
     
-    def PasdeTir(self):
+    def PasdeTir(self):   #incrémentation du timer entre deux tirs
         if self.jeu.GameOver:
             return
         self.TimerTir += 1
 
-        self.canvas.after(16, self.PasdeTir)
+        self.canvas.after(16, self.PasdeTir) # à modifier si on veut changer la fréquence des tirs
 
 
-class Menu:
-    def __init__(self):
+class Menu:  # crée un objet qui a comme attributs tous les éléments du menu.
+    def __init__(self):        
         self.background = tk.PhotoImage(file = 'backgroundMenu.png')
         self.logo =  tk.PhotoImage(file = 'logo.png')
+        self.boutonPlay = tk.Button( text = 'PLAY !',height = 4, width = 20,activebackground='#ffbd33',background='#FFE213')
+        self.boutonExit = tk.Button( text = 'EXIT',height = 2, width = 10,activebackground='#ffbd33',background='#FFE213')
 
 
 
-class Jeu:
-    def __init__(self, fenetre, length, heigth, vitesse = 1):
-        # A ameliorer pour configurer depuis la declaration d'un objet jeu
-        self.fenetre = fenetre
+class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs les autres objets du programme.
+    def __init__(self, fenetre, length, height, vitesse = 1):
+
+        self.fenetre = fenetre # fenetre est une fenêtre Tk()
         self.fenetre.title('Space Invaders')
         self.fenetre.geometry("600x600")
         self.fenetre.resizable(width=False, height=False)
@@ -179,17 +183,16 @@ class Jeu:
         self.player = Player(self.canvas, self)
 
         self.length = length
-        self.heigth = heigth
+        self.height = height
         self.vitesse = vitesse # Ces 3 pour manches suivantes, incrémentés
 
-        self.horde = Horde(self.canvas, self, self.length, self.heigth, self.vitesse)
+        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
         self.murs = Murs(self.canvas,self)
         self.GameOver = False
         self.Tirsactuels = []
 
         self.menu = Menu()
-        self.boutonPlay = tk.Button(self.fenetre, text = 'PLAY !',height = 4, width = 20,command=self.Debut,activebackground='#ffbd33',background='#FFE213')
-        self.boutonExit = tk.Button(self.fenetre, text = 'EXIT',height = 2, width = 10,command=self.fenetre.destroy,activebackground='#ffbd33',background='#FFE213')
+        
 
         self.transition = False
 
@@ -200,14 +203,16 @@ class Jeu:
         temp.close()
 
 
-    def lancerMenu(self):
+    def lancerMenu(self): # première méthode appelée quand le jeu est lancé
         self.canvas.pack(anchor='nw')
         self.affBackground = self.canvas.create_image(300,300,image=self.menu.background)
         self.affLogo = self.canvas.create_image(300,133,image=self.menu.logo)        
-        self.affBoutonPLay =self.canvas.create_window(300,350,window = self.boutonPlay)        
-        self.affBoutonExit = self.canvas.create_window(300,450,window = self.boutonExit)
+        self.affBoutonPLay =self.canvas.create_window(300,350,window = self.menu.boutonPlay)
+        self.menu.boutonPlay.config( command=self.Debut)      
+        self.affBoutonExit = self.canvas.create_window(300,450,window = self.menu.boutonExit)
+        self.menu.boutonExit.config( command=self.fenetre.destroy)
     
-    def Debut(self):
+    def Debut(self): #est appelée pour commencer à jouer, supprime les éléments du menu et 
         self.canvas.delete(self.affBoutonPLay,self.affBoutonExit,self.affBackground,self.affLogo)
         self.canvas.pack(anchor='nw')
         self.canvas.after(16, self.horde.deplacements)
@@ -223,13 +228,13 @@ class Jeu:
         self.fenetre.bind('<space>', self.player.NouveauTirP)
         
     def newmanche(self):
-        self.vitesse += 1
-
-        self.horde = Horde(self.canvas, self, self.length, self.heigth, self.vitesse)
+        self.vitesse += 1 #augmentation de la difficulté
+        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
         self.transition = False
         self.canvas.after(16, self.horde.deplacements)
         self.canvas.after(16, self.horde.NouveauTir)
         self.canvas.after(16, self.GestionTirs)
+
     def endGame(self):
         self.canvas.delete('all')
         label = tk.Label(self.canvas, text='GAME OVER', fg='white', bg='black')
@@ -237,18 +242,18 @@ class Jeu:
         self.canvas.create_window(300, 300, window=label)
         self.affBackground = self.canvas.create_image(300,300,image=self.menu.background)
         
-        if self.score > self.highscore:
+        if self.score > self.highscore: # sauvegarde du meilleur score si on bat le record
             temp = open("highscore.txt", "wt")
             temp.write(str(self.score))
             temp.close()
         
         self.canvas.after(500, self.relaunch)
         
-    def relaunch(self):
+    def relaunch(self): # réinitialisation du jeu pour ré-afficher le menu et relancer une partie.
         self.canvas.delete('all')
         self.vitesse = 1
         self.player = Player(self.canvas, self)
-        self.horde = Horde(self.canvas, self, self.length, self.heigth, self.vitesse)
+        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
         self.murs = Murs(self.canvas,self)
         self.GameOver = False
         self.Tirsactuels = []
@@ -256,13 +261,14 @@ class Jeu:
         self.menu = Menu()
         self.boutonPlay = tk.Button(self.fenetre, text = 'PLAY !',height = 4, width = 20,command=self.Debut,activebackground='#ffbd33',background='#FFE213')
         self.boutonExit = tk.Button(self.fenetre, text = 'EXIT',height = 2, width = 10,command=self.fenetre.destroy,activebackground='#ffbd33',background='#FFE213')
+        
         jeu.lancerMenu()
 
-    def GestionTirs(self):
+    def GestionTirs(self): # gestion du mouvement des lasers et de la collision
         if self.GameOver:
             return
         for tir in self.Tirsactuels:
-            touche = False
+            touche = False  # True si l'entité est touchée
             indexEnnemiasuppr = None 
             indexblocasuppr = None
             indexEnnemiatoucher = None
@@ -317,29 +323,29 @@ class Jeu:
                 
         self.canvas.after(16, self.GestionTirs)
 
-class Bloc:
+class Bloc: #Objet qui compose les murs : carré blanc 
     def __init__(self, canvas, jeu,positionx, positiony):
         self.image = tk.PhotoImage(file='bloc.png').subsample(25,25)
         self.jeu = jeu
         self.canvas = canvas
         self.sprite = self.canvas.create_image(positionx,positiony,image=self.image, anchor='nw')
         
-class Murs:
+class Murs: #composé des blocs
     def __init__(self, canvas, jeu):
         self.jeu = jeu
         self.canvas = canvas
-        self.listeBlocs=[]
-        for i in range(5):
-            for j in range(3):
-                self.listeBlocs.append(Bloc(canvas, jeu, 60+20*i, j*20+485))
+        self.listeBlocs=[] 
+        for i in range(5):  # 5 blocs par ligne
+            for j in range(3):  # 3 blocs par colonne 
+                self.listeBlocs.append(Bloc(canvas, jeu, 60+20*i, j*20+485)) # trois murs
                 self.listeBlocs.append(Bloc(canvas, jeu, 260+20*i, j*20+485))
                 self.listeBlocs.append(Bloc(canvas, jeu, 460+20*i, j*20+485))
                 
         
 
     
-if __name__ == '__main__':
-    fenetre = tk.Tk()
-    jeu = Jeu(fenetre, 8, 3)
+if __name__ == '__main__':  # utile si on travaille sur plusieurs fichiers .py dans le répertoire 
+    fenetre = tk.Tk() # initialisation de la variable qui gère la fenêtre de jeu 
+    jeu = Jeu(fenetre, 8, 3)# nombre de lignes et de colonnes qui composent la horde d'ennemis.
     jeu.lancerMenu()
     jeu.fenetre.mainloop()
