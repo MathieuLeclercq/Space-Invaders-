@@ -7,7 +7,7 @@ class Ennemi:
         self.kind = kind
         self.canvas = canvas
         self.positionx = positionx
-        self.setimage = [tk.PhotoImage(file='mechant.png'),tk.PhotoImage(file='mechant2.png'),tk.PhotoImage(file='mechant1.png'),tk.PhotoImage(file='mechant22.png')] #50px*50px
+        self.setimage = [tk.PhotoImage(file='mechant1.png'),tk.PhotoImage(file='mechant2.png'),tk.PhotoImage(file='mechant12.png'),tk.PhotoImage(file='mechant22.png')] #50px*50px
         self.positiony= positiony # Pourrait être utile. Position dans la grille de la horde
         self.sprite= canvas.create_image(50*positionx,50*positiony+50,image=self.setimage[kind-1], anchor='nw')
         self.direction = direction # utile pour les solitaires hors hordes qui donnent des bonus
@@ -31,7 +31,7 @@ class Ennemi:
         else:
             self.direction = (self.direction == -1) - (self.direction == 1)
             self.canvas.move(self.sprite, self.direction*self.vitesse, 0)
-        self.canvas.after(self.frequence,self.deplacement)
+        self.canvas.after(self.frequence,self.deplacementboss)
 
     def deplacementsurprise(self):
         if self.jeu.GameOver:
@@ -41,14 +41,13 @@ class Ennemi:
             self.canvas.move(self.sprite, self.direction*self.vitesse, 0)
         else:
             self.canvas.destroy(self.sprite)
-        self.canvas.after(self.frequence,self.deplacement)
+        self.canvas.after(self.frequence,self.deplacementsurprise)
 
 class Horde:
     def __init__(self,canvas, jeu, length, heigth, vitesse = 1, direction = 1, frequence = 16):
         self.listeEnnemis = []
         self.length = length
         self.heigth = heigth
-        self.setimage = [tk.PhotoImage(file='mechant.png')] #50px*50px
         self.canvas = canvas
         self.jeu = jeu
         self.vitesse = vitesse
@@ -235,7 +234,7 @@ class Jeu:
         self.canvas.delete('all')
         label = tk.Label(self.canvas, text='GAME OVER', fg='white', bg='black')
         label.config(font=("Liberation", 30))
-        labelc = self.canvas.create_window(300, 300, window=label)
+        self.canvas.create_window(300, 300, window=label)
         self.affBackground = self.canvas.create_image(300,300,image=self.menu.background)
         
         if self.score > self.highscore:
@@ -292,7 +291,8 @@ class Jeu:
                     indexblocasuppr = self.murs.listeBlocs.index(bloc)
             
             if indexEnnemiatoucher != None:
-                self.canvas.itemconfig(self.horde.listeEnnemis[indexEnnemiatoucher].sprite, image=self.horde.listeEnnemis[indexEnnemiatoucher].setimage[self.horde.listeEnnemis[indexEnnemiatoucher].kind-1+2])
+                temp = self.horde.listeEnnemis[indexEnnemiatoucher]
+                self.canvas.itemconfig(temp.sprite, image=temp.setimage[temp.kind-1+len(temp.setimage)//2]) # La liste est pensée telle que la 2e moitié puisse servir à representer la premiere moitié blessée
             if indexEnnemiasuppr != None:
                 self.canvas.delete(self.horde.listeEnnemis[indexEnnemiasuppr].sprite)
                 self.horde.listeEnnemis.remove(self.horde.listeEnnemis[indexEnnemiasuppr])
