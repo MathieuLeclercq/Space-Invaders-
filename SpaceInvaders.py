@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Lucas BRAZ et Mathieu LECLERCQ
 import tkinter as tk
 import random as rd
 
@@ -273,9 +274,10 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
         
         if self.vitesse < 3 :  # augmentation de la vitesse jusqu'à un certain seuil
             self.vitesse += 0.5 
-        if self.proba > 500 : # pareil pour la fréquence de tir
+        if self.proba > 2100 : # pareil pour la fréquence de tir
             self.proba -= 900
-        
+        if self.proba > 500 and self.proba < 2100:
+            self.proba -= 300        
         self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse,self.proba)
         self.transition = False
         self.canvas.after(16, self.horde.deplacements)
@@ -299,6 +301,8 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
     def relaunch(self): # réinitialisation du jeu pour ré-afficher le menu et relancer une partie.
         self.canvas.delete('all')
         self.vitesse = 1
+        self.proba = 4000
+        self.manche = 1
         self.player = Player(self.canvas, self)
         self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
         self.murs = Murs(self.canvas,self)
