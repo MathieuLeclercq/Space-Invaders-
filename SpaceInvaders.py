@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Lucas BRAZ et Mathieu LECLERCQ
-import tkinter as tk
+import Tkinter as tk  # on a travaillé sur python 3 mais ça ne devrait rien changer à part la majuscule sur Tkinter.
 import random as rd
 
 class Ennemi: # gère le type des ennemis, leurs déplacements
