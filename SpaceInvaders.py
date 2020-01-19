@@ -12,17 +12,17 @@ class Ennemi: # gère le type des ennemis, leurs déplacements
         self.sprite= canvas.create_image(50*positionx,50*positiony+50,image=self.setimage[kind-1], anchor='nw')
         self.direction = direction # utile pour les solitaires hors hordes qui donnent des bonus
         self.image=self.setimage[kind-1]
-        self.Horde = Horde
+        self.Horde = Horde        
+        self.jeu = jeu
         self.vitesse = vitesse
         self.frequence = frequence
-        self.jeu = jeu
         self.score = 50*kind**2
         self.pv = kind
         if self.pv == 3:
             self.pv = 1
             # C'est le boss
 
-    def deplacementboss(self):
+    def deplacementboss(self): # si on ajoute un boss dans le jeu
         if self.jeu.GameOver:
             return
         # Deplacement pour les solitaires persistant sur une ligne et qui n'avancent pas (boss ?). Se manipule en dehors des hordes. Pas implémenté (suffit de créer l'objet de type Ennemi et lancer cette fonction apres un certain nombre de manche)
@@ -44,7 +44,7 @@ class Ennemi: # gère le type des ennemis, leurs déplacements
         self.canvas.after(self.frequence,self.deplacementsurprise)
 
 class Horde:  # gère les ennemis en tant que groupe
-    def __init__(self,canvas, jeu, length, height, vitesse = 1, direction = 1, frequence = 16):
+    def __init__(self,canvas, jeu, length, height, vitesse = 1, proba = 5000,frequence = 16, direction = 1):
         self.listeEnnemis = []
         self.length = length
         self.height = height
@@ -53,6 +53,7 @@ class Horde:  # gère les ennemis en tant que groupe
         self.vitesse = vitesse
         self.direction = direction
         self.frequence = frequence
+        self.proba = proba
         
         
         for i in range(length):
@@ -87,7 +88,7 @@ class Horde:  # gère les ennemis en tant que groupe
         if self.jeu.GameOver or self.jeu.transition:
             return
         for Ennemi in self.listeEnnemis:
-            probatir = rd.randint(0,5000)
+            probatir = rd.randint(0,self.proba)
             if probatir <= 1:
                 self.jeu.Tirsactuels.append(Tir(self.canvas, self.jeu, self.canvas.coords(Ennemi.sprite)[0], self.canvas.coords(Ennemi.sprite)[1], 1))
         self.canvas.after(16, self.NouveauTir)
@@ -170,8 +171,8 @@ class Menu:  # crée un objet qui a comme attributs tous les éléments du menu.
 
 
 
-class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs les autres objets du programme.
-    def __init__(self, fenetre, length, height, vitesse = 1):
+class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et a pour attributs les autres objets du programme.
+    def __init__(self, fenetre, length, height, vitesse = 1,proba = 4000):
 
         self.fenetre = fenetre # fenetre est une fenêtre Tk()
         self.fenetre.title('Space Invaders')
@@ -184,24 +185,34 @@ class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs le
 
         self.length = length
         self.height = height
-        self.vitesse = vitesse # Ces 3 pour manches suivantes, incrémentés
+        self.vitesse = vitesse
+        self.proba = proba  # proba n'est pas vraiment une probabilité, plus il baisse plus les ennemis tirent fréquemment.
+         # Ces 3 pour manches suivantes, incrémentés
 
-        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
+
+        self.manche = 1
+        self.mancheSv = tk.StringVar()
+        self.mancheSv.set(str(self.manche))
+
+        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse,self.proba)
         self.murs = Murs(self.canvas,self)
         self.GameOver = False
         self.Tirsactuels = []
 
-        self.menu = Menu()
-        
+        self.menu = Menu()        
 
         self.transition = False
 
         self.score = 0
-
-        temp = open("highscore.txt", "rt")
-        self.highscore = int(temp.readline())
-        temp.close()
-
+        self.highScoreSv = tk.StringVar()   # on utilise une stringvariable pour pouvoir changer sa valeur ensuite 
+        self.temp = open("highscore.txt", "rt")
+        self.highScore = int(self.temp.readline())  # Entier qui stocke le highscore, pas le même type de variable que HighScoreSv
+        self.temp.close()        
+        self.temp = open("highscore.txt", "rt")  # on ouvre deux fois le fichiers au lieu d'une car cela génère une erreur de faire les deux manipulations en une fois
+        self.highScoreSv.set('HIGHSCORE : '+self.temp.readline())      
+        self.temp.close()
+       
+        
 
     def lancerMenu(self): # première méthode appelée quand le jeu est lancé
         self.canvas.pack(anchor='nw')
@@ -211,13 +222,23 @@ class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs le
         self.menu.boutonPlay.config( command=self.Debut)      
         self.affBoutonExit = self.canvas.create_window(300,450,window = self.menu.boutonExit)
         self.menu.boutonExit.config( command=self.fenetre.destroy)
+        self.labelHighScore = tk.Label(self.canvas, textvariable=self.highScoreSv, fg='white', bg='black', font='Helvetica 16 bold')
+        self.affHighScore = self.canvas.create_window(490,15,window = self.labelHighScore)
+        self.canvas.after(16, self.affichageHighScore)
+        self.sv = tk.StringVar()
+        self.sv.set('SCORE : '+str(self.score))
+        self.labelScore = tk.Label(self.canvas, textvariable=self.sv, fg='white', bg='black', font='Helvetica 16 bold')
     
-    def Debut(self): #est appelée pour commencer à jouer, supprime les éléments du menu et 
+    def Debut(self): #est appelée pour commencer à jouer, supprime les éléments du menu et lancer les methodes qui permettent le bon déroulement du jeu
         self.canvas.delete(self.affBoutonPLay,self.affBoutonExit,self.affBackground,self.affLogo)
         self.canvas.pack(anchor='nw')
+        
+        self.affScore = self.canvas.create_window(90,15,window = self.labelScore)
+        
         self.canvas.after(16, self.horde.deplacements)
         self.canvas.after(16, self.player.deplacementplayer)
         self.canvas.after(16, self.GestionTirs)
+        self.canvas.after(16, self.gestionScore)
         self.canvas.after(16, self.horde.NouveauTir)       
         self.canvas.after(16, self.player.PasdeTir)
         self.fenetre.bind('<q>', self.player.moveleft)
@@ -226,23 +247,49 @@ class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs le
         self.fenetre.bind('<D>', self.player.moveright)
         self.fenetre.bind('<KeyRelease>', self.player.stopmove)
         self.fenetre.bind('<space>', self.player.NouveauTirP)
+    
+    def gestionScore(self): # affichage du score pendant la partie
+        self.canvas.delete(self.affScore)
+        self.sv.set('SCORE : '+str(self.score))        
+        self.affScore = self.canvas.create_window(90,15,window = self.labelScore)
+        self.canvas.after(16, self.gestionScore)
         
-    def newmanche(self):
-        self.vitesse += 1 #augmentation de la difficulté
-        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
+    def affichageHighScore(self): # gère la modification en direct de la valeur du highscore après une partie 
+        self.canvas.delete(self.affHighScore)
+        self.temp = open("highscore.txt", "rt")
+        self.highScoreSv.set('HIGHSCORE : '+self.temp.readline())    
+        self.temp.close()
+        self.affHighScore = self.canvas.create_window(490,15,window = self.labelHighScore)
+
+    def ecranManche(self):
+        self.manche += 1
+        self.mancheSv.set('MANCHE '+ str(self.manche))
+        self.labelManche = tk.Label(self.canvas, textvariable=self.mancheSv, fg='#FFE213', bg='black', font='Helvetica 60 bold')
+        self.affManche = self.canvas.create_window(300,250,window = self.labelManche)
+        self.canvas.after(1000,self.newmanche)  #lancement de la prochaine manche
+
+    def newmanche(self):  # Ecran de transition entre deux manches
+        self.canvas.delete(self.affManche)        
+        
+        if self.vitesse < 3 :  # augmentation de la vitesse jusqu'à un certain seuil
+            self.vitesse += 0.5 
+        if self.proba > 500 : # pareil pour la fréquence de tir
+            self.proba -= 900
+        
+        self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse,self.proba)
         self.transition = False
         self.canvas.after(16, self.horde.deplacements)
         self.canvas.after(16, self.horde.NouveauTir)
         self.canvas.after(16, self.GestionTirs)
 
-    def endGame(self):
+    def endGame(self): # Ecran de game over
         self.canvas.delete('all')
         label = tk.Label(self.canvas, text='GAME OVER', fg='white', bg='black')
         label.config(font=("Liberation", 30))
         self.canvas.create_window(300, 300, window=label)
         self.affBackground = self.canvas.create_image(300,300,image=self.menu.background)
         
-        if self.score > self.highscore: # sauvegarde du meilleur score si on bat le record
+        if self.score > self.highScore: # sauvegarde du meilleur score si on bat le record
             temp = open("highscore.txt", "wt")
             temp.write(str(self.score))
             temp.close()
@@ -257,14 +304,15 @@ class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs le
         self.murs = Murs(self.canvas,self)
         self.GameOver = False
         self.Tirsactuels = []
-
+        self.score = 0
+        
         self.menu = Menu()
         self.boutonPlay = tk.Button(self.fenetre, text = 'PLAY !',height = 4, width = 20,command=self.Debut,activebackground='#ffbd33',background='#FFE213')
         self.boutonExit = tk.Button(self.fenetre, text = 'EXIT',height = 2, width = 10,command=self.fenetre.destroy,activebackground='#ffbd33',background='#FFE213')
         
         jeu.lancerMenu()
 
-    def GestionTirs(self): # gestion du mouvement des lasers et de la collision
+    def GestionTirs(self): # gestion du mouvement des lasers et de la collision, ainsi que de l'augmentation de la variable score
         if self.GameOver:
             return
         for tir in self.Tirsactuels:
@@ -284,14 +332,14 @@ class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs le
                     
                     touche = True                    
                     if Ennemi.pv == 1:
-                        indexEnnemiasuppr = self.horde.listeEnnemis.index(Ennemi)                  
-                        self.score += Ennemi.score
+                        indexEnnemiasuppr = self.horde.listeEnnemis.index(Ennemi)  # suppression de l'ennemi mort              
+                        self.score += Ennemi.score  #augmentation du score quand on tue un ennemi                        
                     else:
-                        Ennemi.pv -= 1
+                        Ennemi.pv -= 1  # on baisse la vie de l'ennemi touché
                         indexEnnemiatoucher = self.horde.listeEnnemis.index(Ennemi)
                
 
-            for bloc in self.murs.listeBlocs:
+            for bloc in self.murs.listeBlocs: # gestion de la destruction des blocs
                 if self.canvas.coords(bloc.sprite)[0] - self.canvas.coords(tir.sprite)[0] < 29 and self.canvas.coords(bloc.sprite)[0] - self.canvas.coords(tir.sprite)[0] > 0 and self.canvas.coords(tir.sprite)[1] - self.canvas.coords(bloc.sprite)[1] < 9 and self.canvas.coords(bloc.sprite)[1] - self.canvas.coords(tir.sprite)[1] < 29:
                     touche = True
                     indexblocasuppr = self.murs.listeBlocs.index(bloc)
@@ -318,7 +366,7 @@ class Jeu: # objet gérant la fenêtre de jeu, le canvas, et a pour attributs le
             if len(self.horde.listeEnnemis) == 0:
                 self.transition = True
             if len(self.horde.listeEnnemis) == 0 and len(self.Tirsactuels) == 0:
-                self.canvas.after(1000, self.newmanche)
+                self.canvas.after(1000, self.ecranManche) # on lance la prochaine manche
                 return
                 
         self.canvas.after(16, self.GestionTirs)
