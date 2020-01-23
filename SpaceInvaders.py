@@ -262,14 +262,14 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
         self.temp.close()
         self.affHighScore = self.canvas.create_window(490,15,window = self.labelHighScore)
 
-    def ecranManche(self):
+    def ecranManche(self): # Ecran de transition entre deux manches
         self.manche += 1
         self.mancheSv.set('MANCHE '+ str(self.manche))
         self.labelManche = tk.Label(self.canvas, textvariable=self.mancheSv, fg='#FFE213', bg='black', font='Helvetica 60 bold')
         self.affManche = self.canvas.create_window(300,250,window = self.labelManche)
         self.canvas.after(1000,self.newmanche)  #lancement de la prochaine manche
 
-    def newmanche(self):  # Ecran de transition entre deux manches
+    def newmanche(self):  
         self.canvas.delete(self.affManche)        
         
         if self.vitesse < 3 :  # augmentation de la vitesse jusqu'à un certain seuil
