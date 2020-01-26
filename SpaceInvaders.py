@@ -309,7 +309,6 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
         self.GameOver = False
         self.Tirsactuels = []
         self.score = 0
-        self.manche = 1
         
         self.menu = Menu()
         self.boutonPlay = tk.Button(self.fenetre, text = 'PLAY !',height = 4, width = 20,command=self.Debut,activebackground='#ffbd33',background='#FFE213')
