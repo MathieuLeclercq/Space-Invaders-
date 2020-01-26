@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import tkinter as tk
+# Lucas BRAZ et Mathieu LECLERCQ
+import Tkinter as tk  # on a travaillé sur python 3 mais ça ne devrait rien changer à part la majuscule sur Tkinter.
 import random as rd
 
 class Ennemi: # gère le type des ennemis, leurs déplacements
@@ -261,21 +262,22 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
         self.temp.close()
         self.affHighScore = self.canvas.create_window(490,15,window = self.labelHighScore)
 
-    def ecranManche(self):
+    def ecranManche(self): # Ecran de transition entre deux manches
         self.manche += 1
         self.mancheSv.set('MANCHE '+ str(self.manche))
         self.labelManche = tk.Label(self.canvas, textvariable=self.mancheSv, fg='#FFE213', bg='black', font='Helvetica 60 bold')
         self.affManche = self.canvas.create_window(300,250,window = self.labelManche)
         self.canvas.after(1000,self.newmanche)  #lancement de la prochaine manche
 
-    def newmanche(self):  # Ecran de transition entre deux manches
+    def newmanche(self):  
         self.canvas.delete(self.affManche)        
         
         if self.vitesse < 3 :  # augmentation de la vitesse jusqu'à un certain seuil
             self.vitesse += 0.5 
-        if self.proba > 500 : # pareil pour la fréquence de tir
+        if self.proba > 2100 : # pareil pour la fréquence de tir
             self.proba -= 900
-        
+        if self.proba > 500 and self.proba < 2100:
+            self.proba -= 300        
         self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse,self.proba)
         self.transition = False
         self.canvas.after(16, self.horde.deplacements)
@@ -299,6 +301,8 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
     def relaunch(self): # réinitialisation du jeu pour ré-afficher le menu et relancer une partie.
         self.canvas.delete('all')
         self.vitesse = 1
+        self.proba = 4000
+        self.manche = 1
         self.player = Player(self.canvas, self)
         self.horde = Horde(self.canvas, self, self.length, self.height, self.vitesse)
         self.murs = Murs(self.canvas,self)
