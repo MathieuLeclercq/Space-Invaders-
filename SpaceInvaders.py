@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Lucas BRAZ et Mathieu LECLERCQ
-import Tkinter as tk  # on a travaillé sur python 3 mais ça ne devrait rien changer à part la majuscule sur Tkinter.
+import tkinter as tk  # On a travaillé sur python 3 mais ça ne devrait rien changer à part la majuscule sur Tkinter.
 import random as rd
 
 class Ennemi: # gère le type des ennemis, leurs déplacements
@@ -395,7 +395,7 @@ class Murs: #composé des blocs
                 
         
 
-    
+
 if __name__ == '__main__':  # utile si on travaille sur plusieurs fichiers .py dans le répertoire 
     fenetre = tk.Tk() # initialisation de la variable qui gère la fenêtre de jeu 
     jeu = Jeu(fenetre, 8, 3) # nombre de lignes et de colonnes qui composent la horde d'ennemis.
