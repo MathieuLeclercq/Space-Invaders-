@@ -305,6 +305,7 @@ class Jeu: # Classe principale : objet gérant la fenêtre de jeu, le canvas, et
         self.GameOver = False
         self.Tirsactuels = []
         self.score = 0
+        self.manche = 1
         
         self.menu = Menu()
         self.boutonPlay = tk.Button(self.fenetre, text = 'PLAY !',height = 4, width = 20,command=self.Debut,activebackground='#ffbd33',background='#FFE213')
@@ -394,6 +395,6 @@ class Murs: #composé des blocs
     
 if __name__ == '__main__':  # utile si on travaille sur plusieurs fichiers .py dans le répertoire 
     fenetre = tk.Tk() # initialisation de la variable qui gère la fenêtre de jeu 
-    jeu = Jeu(fenetre, 8, 3)# nombre de lignes et de colonnes qui composent la horde d'ennemis.
+    jeu = Jeu(fenetre, 8, 3) # nombre de lignes et de colonnes qui composent la horde d'ennemis.
     jeu.lancerMenu()
     jeu.fenetre.mainloop()
